@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REC-8K Video Transformation Studio</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-title">
+        <span>🎬 REC-8K Video Studio</span>
+        <span class="brand-badge">6s Benchmark</span>
+      </div>
+    </div>
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-item">
+        <span class="stat-label">Total Samples</span>
+        <span class="stat-value" id="statTotalSamples">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label" id="statScriptedLabel">Scripted: 0%</span>
+        <div class="progress-track">
+          <div class="progress-fill-script" id="statScriptedFill" style="width: 0%;"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label" id="statVideoLabel">Videos Ready: 0%</span>
+        <div class="progress-track">
+          <div class="progress-fill-video" id="statVideoFill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- App Container -->
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-controls">
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="🔍 Search expression or class..."
+        />
+        <div class="filter-row">
+          <select id="categorySelect" class="select-dropdown">
+            <option value="all">All Categories</option>
+          </select>
+          <select id="statusSelect" class="select-dropdown">
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="scripted">Scripted</option>
+            <option value="video_uploaded">Video Uploaded</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sample List -->
+      <div class="sample-list" id="sampleList">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Pagination -->
+      <div class="sidebar-pagination">
+        <button id="btnPrevPage" class="btn-page" disabled>&larr; Prev</button>
+        <span id="pageInfo">Page 1 of 1</span>
+        <button id="btnNextPage" class="btn-page" disabled>Next &rarr;</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace-area">
+      <!-- Sample Header -->
+      <div class="workspace-header">
+        <div>
+          <div class="detail-title" id="sampleDetailTitle">
+            <span>Select a sample to inspect</span>
+          </div>
+          <div class="detail-subtitle" id="sampleDetailSubtitle">
+            Choose any sample from the left panel to begin script generation and video tracking.
+          </div>
+        </div>
+        <div id="sampleMetaPills"></div>
+      </div>
+
+      <!-- Split Columns -->
+      <div class="workspace-columns" id="workspaceContent" style="display: none;">
+        <!-- Left: Visual Grounding Inspector -->
+        <div class="card-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>🖼️ Visual Grounding Inspector</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="btnTogglePoints" class="btn-toggle-points active" type="button" title="Turn red dots on/off">
+                <span id="toggleDotsIcon">🔴</span>
+                <span id="toggleDotsText">Hide Red Dots</span>
+                <span class="badge badge-count" id="pointsCountBadge" style="margin-left: 2px;">0</span>
+              </button>
+              <a id="btnOpenRawImage" href="#" target="_blank" class="btn-secondary" style="font-size: 0.75rem;">
+                Full Image ↗
+              </a>
+            </div>
+          </div>
+
+          <div class="canvas-container">
+            <canvas id="pointCanvas" class="canvas-element"></canvas>
+          </div>
+
+          <div class="controls-row">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button id="btnTogglePointsBottom" class="btn-secondary" type="button" style="font-size: 0.8rem; font-weight: 600;">
+                <span>🔴 Toggle Red Dots</span>
+              </button>
+              <span style="font-size: 0.82rem; color: var(--text-muted);">
+                Annotated Count: <strong id="pointsCountLabel" style="color: #f8fafc;">0</strong>
+              </span>
+            </div>
+            <span style="font-size: 0.78rem; color: var(--text-muted);" id="imageDimLabel"></span>
+          </div>
+
+          <div class="points-summary-box" id="pointsCoordinatesBox">
+            <!-- Rendered list of coordinates -->
+          </div>
+        </div>
+
+        <!-- Right: Video Transformation Suite -->
+        <div class="card-panel">
+          <!-- Step 1: Script Generator -->
+          <div class="suite-section">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="suite-step-badge">Step 1</span>
+                <span>6-Second Script Generator</span>
+              </div>
+            </div>
+
+            <div class="inputs-grid">
+              <div class="input-group">
+                <label class="input-label" for="inputDisappear">Disappear Cnt</label>
+                <input type="number" id="inputDisappear" class="number-input" min="0" value="1" />
+              </div>
+              <div class="input-group">
+                <label class="input-label" for="inputAppear">Appear Cnt</label>
+                <input type="number" id="inputAppear" class="number-input" min="0" value="0" />
+              </div>
+              <div class="computed-count-box">
+                <span class="input-label">Projected Final</span>
+                <span class="computed-val" id="computedFinalCount">1</span>
+              </div>
+            </div>
+
+            <button id="btnGenerateScript" class="btn-primary">
+              <span id="btnScriptText">✨ Generate 6-Second Script</span>
+            </button>
+
+            <div class="script-editor-container" id="scriptEditorSection">
+              <textarea 
+                id="scriptTextarea" 
+                class="script-textarea" 
+                placeholder="Click 'Generate 6-Second Script' to draft prompt with LLM..."
+              ></textarea>
+              <div class="script-actions">
+                <button id="btnCopyPrompt" class="btn-secondary">📋 Copy Prompt</button>
+                <button id="btnSaveScript" class="btn-secondary">💾 Save Edits</button>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 6px 0;" />
+
+          <!-- Step 2: Video Ingestion & Player -->
+          <div class="suite-section">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="suite-step-badge" style="background-color: var(--accent-emerald);">Step 2</span>
+                <span>Generated Video Ingestion</span>
+              </div>
+            </div>
+
+            <!-- Upload Dropzone (shown when no video) -->
+            <div class="dropzone" id="videoDropzone">
+              <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/quicktime" style="display: none;" />
+              <div class="dropzone-icon">📥</div>
+              <div class="dropzone-text">Drag & drop your generated video here</div>
+              <div class="dropzone-sub">or click to browse (.mp4, .webm, .mov) &bull; Persisted to server storage</div>
+            </div>
+
+            <!-- Video Player (shown when video is attached) -->
+            <div class="video-player-container" id="videoPlayerSection" style="display: none;">
+              <video id="sampleVideoPlayer" class="video-player" controls preload="metadata"></video>
+              <div class="video-meta-bar">
+                <div class="video-status-tag">
+                  <span>🟢 Saved Permanently</span>
+                  <span id="videoFilenameLabel" style="font-weight: normal; color: var(--text-muted); font-size: 0.75rem;"></span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button id="btnReplaceVideo" class="btn-secondary" style="font-size: 0.75rem;">🔄 Replace</button>
+                  <button id="btnRemoveVideo" class="btn-danger">🗑️ Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Element -->
+  <div id="toastNotification" class="toast"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
